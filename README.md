@@ -1,7 +1,9 @@
 # sdc-01-findlane
 
-This programs processes images or videos captured by a camera sensor (e.g. a dash-cam) placed in front of the car
-and identify the lane the car is driving.
+This programs processes images or videos captured by a camera sensor in front of the car
+and identifies the lane the car is driving on.
+
+![example](docs/example_inout.png)
 
 ## usage
 
