@@ -18,6 +18,6 @@ The result will be placed in `output_images` and `output_videos`
 
 ## notes
 
-file `uda_utils.py` contains functions that have mostly derived from Self Driving Car Udacity course I'm attending. Please find its relative [license file](docs/UDACITY_LICENSE).
+file `uda_utils.py` contains functions that have mostly derived from Self Driving Car Udacity course I'm attending. Imput media are also provided as part of the course. Please refer to [their license](docs/UDACITY_LICENSE) for those files.
 
 The other files contain code developed entirely by me for which [this license applies](LICENSE)
