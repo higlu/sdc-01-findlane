@@ -24,7 +24,6 @@ def findLane(img):
     gscale_img = grayscale(img)
     blurred_img = gaussianBlur(gscale_img,5)
     canny_img = canny(blurred_img,low_threshold=10,high_threshold=180)
-    #plt.imshow(canny_img)
     
     # create a crop region to isolate the area of the image where the road is expected to be
     crop_region = np.array([[(0,ysize), 
@@ -34,14 +33,10 @@ def findLane(img):
                              (xsize,ysize)]],dtype=np.int32)
     
     cropped_img = keepRegionOnly(canny_img,crop_region)
-    #plt.figure()
-    #plt.imshow(cropped_img)
     
     # find the lines through Hough transformation
     hlines = computeHoughLines(img=cropped_img,rho=1,theta=np.pi/180,threshold=5,min_line_len=10,max_line_gap=10) 
     drawLines(cropped_img,hlines)
-    #plt.figure()
-    #plt.imshow(cropped_img)
     
     # get the equivalent list of Line2D instances
     elines = enrichLines(hlines)
@@ -62,15 +57,14 @@ def findLane(img):
             points = l.getSamplePoints(n_points)
             line_points = np.append(line_points,points,axis=0)
             
-    # classification of points into belonging to left and right part of the lane
-    # using the sole slope for this decision is unadvisable: what if we are close
-    # to a tight curve? In that case negative slope might belong to left line instead.
     # I'm applaying clustering here using two fictitious line to guide the classification
-    # of the real points
+    # of the real points towards left and right lanes
     # The fictitious (anchor) points are then removed after the K-Means clustering 
     # has completed
     
     line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
+    left_points = np.empty(shape=(0,2),dtype=np.float32)
+    right_points = np.empty_like(left_points)
     
     if len(line_points) > 0:
         anchor_line_left = Line2D.fromAB(0,0,0,ysize-1).getSamplePoints(50)
@@ -85,8 +79,7 @@ def findLane(img):
 
         clustered = KMeans(2,starting_centroids).fit(line_points)
 
-        left_points = np.empty(shape=(0,2),dtype=np.float32)
-        right_points = np.empty_like(left_points)
+
         for i,p in enumerate(line_points[:-n_anchor_points]):
             if clustered.labels_[i] == 0:
                 left_points = np.append(left_points,[p],axis=0)
@@ -96,16 +89,17 @@ def findLane(img):
         drawPoints(line_img,left_points.astype(np.uint32),[255,0,0])
         drawPoints(line_img,right_points.astype(np.uint32),[0,0,255])
     
-    # compute polinomial regression over left points and draw it
+    # compute polinomial regression over left points and draw it (in red)
     rpl = computeRegressionPoints(left_points,(0,xsize/2))
     drawPolyline(line_img,rpl.astype(np.uint32),[255,0,0],4)
     
-    # compute polinomial regression over right points and draw it
+    # compute polinomial regression over right points and draw it (in blue)
     rpl = computeRegressionPoints(right_points,(xsize/2,xsize))
     drawPolyline(line_img,rpl.astype(np.uint32),[0,0,255],4)
     
+    #overlap lane lines over original image
     blended_img = np.zeros_like(line_img)
-    blended_img = blendImg(img,line_img,0.8,0.4)
+    blended_img = blendImg(img,line_img,0.8,0.5)
     
     final_img = blended_img
     
